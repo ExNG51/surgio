@@ -1,0 +1,52 @@
+name: Sync Fork
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # 每天凌晨2点运行一次
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout target repository
+        id: checkout-upstream
+        uses: actions/checkout@v3
+        with:
+          repository: surgioproject/surgio
+          ref: master # 你想要同步的分支
+          path: upstream_repo
+          fetch-depth: 0 # 获取完整的仓库历史记录
+        continue-on-error: true # 允许继续，即使失败
+
+      - name: Check if upstream repository checkout failed
+        if: steps.checkout-upstream.outcome == 'failure'
+        run: echo "Failed to checkout upstream repository. The repository or branch may have been deleted." && exit 1
+
+      - name: Checkout fork repository
+        uses: actions/checkout@v3
+        with:
+          repository: ExNG51/surgio
+          ref: master
+          token: ${{ secrets.SYNCWITHUPSTREAM }}
+          path: fork_repo
+          fetch-depth: 0 # 获取完整的仓库历史记录
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Configure Git
+        run: |
+          git config --global user.email "scwb@keemail.me"
+          git config --global user.name "scwb"
+
+      - name: Sync with upstream
+        run: |
+          cd fork_repo
+          git remote add upstream ../upstream_repo
+          git fetch upstream || (echo "Failed to fetch from upstream repository. The repository or branch may have been deleted." && exit 1)
+          git merge upstream/master --no-edit || (echo "Failed to merge from upstream repository. The branch may have been deleted." && exit 1)
+          git push origin master || (echo "Failed to push to fork repository." && exit 1)
