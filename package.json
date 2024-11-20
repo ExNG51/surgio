@@ -1,7 +1,7 @@
 {
   "name": "surgio",
   "description": "Generating rules for Surge, Clash, Quantumult like a PRO",
-  "version": "3.10.2",
+  "version": "3.10.3",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
   "bin": {
@@ -221,6 +221,7 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "packageManager": "pnpm@9.7.0",
   "lint-staged": {
     "*.js": "eslint",
     "*.ts": "eslint --ext .ts"
